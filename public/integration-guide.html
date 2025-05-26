@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Data Integration Guide</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; background: #111; color: #fff; }
+        h1, h2 { color: #00ffcc; }
+        pre { background: #222; padding: 1rem; border-left: 4px solid #00ffcc; overflow-x: auto; }
+        code { color: #0f0; }
+        .box { border: 1px solid #00ffcc; padding: 1rem; margin-top: 1rem; background: #1a1a1a; }
+    </style>
+</head>
+<body>
+    <h1>External Data Integration Guide</h1>
+
+    <h2>Live Maneuver Feed (WebSocket)</h2>
+    <div class="box" id="liveFeed">Connecting...</div>
+
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+    <script>
+        const socket = io("http://localhost:5000");  // Update this to your public backend domain
+        const feed = document.getElementById("liveFeed");
+
+        socket.on("maneuver_alert", data => {
+            const parsed = JSON.parse(data);
+            const div = document.createElement("div");
+            div.textContent = `[${new Date().toLocaleTimeString()}] Maneuver for ${parsed.name} -> ${parsed.avoid_satellite}`;
+            feed.prepend(div);
+        });
+
+        socket.on("connect", () => {
+            feed.innerHTML = "<em>Connected to live feed...</em>";
+        });
+    </script>
+
+    <h2>Data Access APIs</h2>
+    <pre><code>GET /api/maneuvers               → All live AI-generated maneuvers
+GET /api/maneuvers/export/csv    → Download maneuvers as CSV
+GET /api/maneuvers/export/xml    → Download maneuvers as XML
+GET /api/maneuvers/chat          → Retrieve chat history
+POST /api/maneuvers/chat         → Submit chat (JSON: maneuver_id, user, message)
+POST /api/maneuvers/override     → Submit override (JSON: satellite_id, new_altitude_km, delta_v_required_km_s, rationale)</code></pre>
+
+    <h2>Security</h2>
+    <p>Authentication via API key or token header (optional but recommended).</p>
+
+    <h2>Integration Examples</h2>
+    <p>Python:</p>
+    <pre><code>import requests
+res = requests.get("http://yourdomain.com/api/maneuvers")
+print(res.json())</code></pre>
+
+    <p>cURL:</p>
+    <pre><code>curl http://yourdomain.com/api/maneuvers/export/csv -o maneuvers.csv</code></pre>
+</body>
+</html>
